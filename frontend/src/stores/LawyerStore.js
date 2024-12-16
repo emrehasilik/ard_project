@@ -29,18 +29,19 @@ const useLawyerStore = create((set, get) => ({
   },
   
   // Avukat silme fonksiyonu
-  removeLawyer: async (tcKimlikNo) => {
+  removeLawyer: async (nationalId) => {
     try {
-      await axios.delete(`/api/lawyers/${tcKimlikNo}`);
+      await axios.delete(`http://localhost:5000/api/lawyers/${nationalId}`);
       set((state) => ({
         lawyers: state.lawyers.filter(
-          (lawyer) => lawyer.tcKimlikNo !== tcKimlikNo
+          (lawyer) => lawyer.nationalId !== nationalId
         ),
       }));
     } catch (error) {
       console.error("Error removing lawyer:", error);
     }
   },
+  
 
   // Avukat güncelleme fonksiyonu
   updateLawyer: async (tcKimlikNo, updatedLawyer) => {
