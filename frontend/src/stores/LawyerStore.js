@@ -7,10 +7,12 @@ const useLawyerStore = create((set, get) => ({
   // Avukatları sunucudan çekme fonksiyonu
   fetchLawyers: async () => {
     try {
-      const response = await axios.get("/api/lawyers");
-      set({ lawyers: response.data });
+      const response = await axios.get("http://localhost:5000/api/lawyers");
+      console.log("Fetched lawyers:", response.data); // Gelen veriyi kontrol et
+      set({ lawyers: Array.isArray(response.data) ? response.data : [] });
     } catch (error) {
-      console.error("Error fetching lawyers:", error);
+      console.error("Avukatları çekerken hata oluştu:", error.message);
+      set({ lawyers: [] }); // Hata durumunda boş array olarak set et
     }
   },
 
