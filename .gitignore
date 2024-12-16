@@ -1,0 +1,23 @@
+# Node.js Projelerinde Genellikle Hariç Tutulması Gerekenler
+node_modules/
+.env
+package-lock.json
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE/Editor Dosyaları
+.vscode/
+*.swp
+.DS_Store
+
+# Geçici Dosyalar
+temp/
+*.tmp
+
+# Sistem Dosyaları
+Thumbs.db
