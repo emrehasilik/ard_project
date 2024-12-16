@@ -1,21 +1,18 @@
 import React, { useState } from "react";
-import { FaDice, FaEye, FaEyeSlash } from "react-icons/fa";
-import axios from "axios";
 
-const AddLawyer = ({ onClose }) => {
+const AddLawyer = ({ onClose, onSave }) => {
     const [formData, setFormData] = useState({
-        firstName: "", // Backend'e uygun alan isimleri
+        firstName: "",
         lastName: "",
         nationalId: "",
         username: "",
         password: "",
         mail: "",
-        phone: "", // Opsiyonel
+        phone: "",
     });
 
     const [showPassword, setShowPassword] = useState(false);
 
-    // Rastgele şifre oluşturma fonksiyonu
     const generatePassword = () => {
         const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
         let password = "";
@@ -38,15 +35,9 @@ const AddLawyer = ({ onClose }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        try {
-            console.log("Gönderilen veri:", formData); // Hata ayıklamak için ekrana yazdır
-            await axios.post("http://localhost:5000/api/lawyers", formData);
-            alert("Avukat başarıyla eklendi!");
-            onClose();
-        } catch (error) {
-            console.error("Error adding lawyer:", error.response?.data || error.message);
-            alert("Bir hata oluştu, lütfen tekrar deneyin.");
-        }
+        // Buradan axios.post'u kaldırıyoruz ve direkt onSave'i çağırıyoruz.
+        onSave(formData);
+        onClose();
     };
 
     return (
@@ -55,7 +46,6 @@ const AddLawyer = ({ onClose }) => {
                 <h2 className="text-xl font-bold mb-4">Avukat Ekle</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-2 gap-4 mb-8">
-                        {/* T.C. Kimlik No */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="nationalId">
                                 T.C. Kimlik No
@@ -74,7 +64,6 @@ const AddLawyer = ({ onClose }) => {
                             />
                         </div>
 
-                        {/* İsim */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="firstName">
                                 İsim
@@ -89,7 +78,6 @@ const AddLawyer = ({ onClose }) => {
                             />
                         </div>
 
-                        {/* Soyisim */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="lastName">
                                 Soyisim
@@ -104,7 +92,6 @@ const AddLawyer = ({ onClose }) => {
                             />
                         </div>
 
-                        {/* Kullanıcı Adı */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="username">
                                 Kullanıcı Adı
@@ -119,7 +106,6 @@ const AddLawyer = ({ onClose }) => {
                             />
                         </div>
 
-                        {/* E-posta */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="mail">
                                 E-posta
@@ -134,7 +120,6 @@ const AddLawyer = ({ onClose }) => {
                             />
                         </div>
 
-                        {/* Şifre */}
                         <div>
                             <label className="block text-gray-700 mb-2" htmlFor="password">
                                 Şifre
@@ -153,20 +138,19 @@ const AddLawyer = ({ onClose }) => {
                                     className="w-12 h-10 bg-blue-500 text-white font-semibold rounded-full hover:bg-blue-600 flex items-center justify-center"
                                     onClick={handleGeneratePassword}
                                 >
-                                    <FaDice />
+                                    <i className="fa fa-dice"></i>
                                 </button>
                                 <button
                                     type="button"
                                     className="w-12 h-10 bg-gray-500 text-white font-semibold rounded-full hover:bg-gray-600 flex items-center justify-center"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? <FaEyeSlash /> : <FaEye />}
+                                    {showPassword ? <i className="fa fa-eye-slash"></i> : <i className="fa fa-eye"></i>}
                                 </button>
                             </div>
                         </div>
                     </div>
 
-                    {/* Butonlar */}
                     <div className="flex justify-end">
                         <button
                             type="button"
