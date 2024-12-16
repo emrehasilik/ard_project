@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { FaDice, FaEye, FaEyeSlash } from "react-icons/fa";
+import axios from "axios";
 
-const AddLawyer = ({ onClose, onSave }) => {
+const AddLawyer = ({ onClose }) => {
     const [formData, setFormData] = useState({
-        name: "",
-        surname: "",
-        phone: "",
-        email: "",
-        password: "", // Yeni alan: Şifre
-        specialization: "",
+        firstName: "", // Backend'e uygun alan isimleri
+        lastName: "",
+        nationalId: "",
+        username: "",
+        password: "",
+        mail: "",
+        phone: "", // Opsiyonel
     });
 
-    const [showPassword, setShowPassword] = useState(false); // Şifreyi gösterme durumu
+    const [showPassword, setShowPassword] = useState(false);
 
     // Rastgele şifre oluşturma fonksiyonu
     const generatePassword = () => {
@@ -26,24 +28,25 @@ const AddLawyer = ({ onClose, onSave }) => {
 
     const handleGeneratePassword = () => {
         const newPassword = generatePassword();
-        setFormData({
-            ...formData,
-            password: newPassword, // Şifre inputuna otomatik olarak yazılıyor
-        });
+        setFormData((prev) => ({ ...prev, password: newPassword }));
     };
 
     const handleInputChange = (e) => {
         const { id, value } = e.target;
-        setFormData({
-            ...formData,
-            [id]: value,
-        });
+        setFormData((prev) => ({ ...prev, [id]: value }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        onSave(formData); // Form verilerini üst bileşene gönder
-        onClose(); // Formu kapat
+        try {
+            console.log("Gönderilen veri:", formData); // Hata ayıklamak için ekrana yazdır
+            await axios.post("http://localhost:5000/api/lawyers", formData);
+            alert("Avukat başarıyla eklendi!");
+            onClose();
+        } catch (error) {
+            console.error("Error adding lawyer:", error.response?.data || error.message);
+            alert("Bir hata oluştu, lütfen tekrar deneyin.");
+        }
     };
 
     return (
@@ -52,86 +55,81 @@ const AddLawyer = ({ onClose, onSave }) => {
                 <h2 className="text-xl font-bold mb-4">Avukat Ekle</h2>
                 <form onSubmit={handleSubmit}>
                     <div className="grid grid-cols-2 gap-4 mb-8">
-
                         {/* T.C. Kimlik No */}
                         <div>
-                            <label className="block text-gray-700 mb-2" htmlFor="tcKimlikNo">
+                            <label className="block text-gray-700 mb-2" htmlFor="nationalId">
                                 T.C. Kimlik No
                             </label>
                             <input
                                 type="text"
-                                id="tcKimlikNo"
+                                id="nationalId"
                                 className="w-full p-2 border border-gray-300 rounded"
                                 placeholder="T.C. Kimlik Numaranızı girin"
                                 maxLength="11"
-                                onInput={(e) => {
-                                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
+                                value={formData.nationalId}
+                                onChange={(e) => {
+                                    const onlyNums = e.target.value.replace(/[^0-9]/g, "").slice(0, 11);
+                                    handleInputChange({ target: { id: "nationalId", value: onlyNums } });
                                 }}
-                                value={formData.tcKimlikNo}
-                                onChange={handleInputChange}
                             />
                         </div>
 
                         {/* İsim */}
                         <div>
-                            <label className="block text-gray-700 mb-2" htmlFor="name">
+                            <label className="block text-gray-700 mb-2" htmlFor="firstName">
                                 İsim
                             </label>
                             <input
                                 type="text"
-                                id="name"
+                                id="firstName"
                                 className="w-full p-2 border border-gray-300 rounded"
                                 placeholder="Avukatın ismini girin"
-                                value={formData.name}
+                                value={formData.firstName}
                                 onChange={handleInputChange}
                             />
                         </div>
 
                         {/* Soyisim */}
                         <div>
-                            <label className="block text-gray-700 mb-2" htmlFor="surname">
+                            <label className="block text-gray-700 mb-2" htmlFor="lastName">
                                 Soyisim
                             </label>
                             <input
                                 type="text"
-                                id="surname"
+                                id="lastName"
                                 className="w-full p-2 border border-gray-300 rounded"
                                 placeholder="Avukatın soyismini girin"
-                                value={formData.surname}
+                                value={formData.lastName}
                                 onChange={handleInputChange}
                             />
                         </div>
 
-                        {/* Telefon */}
+                        {/* Kullanıcı Adı */}
                         <div>
-                            <label className="block text-gray-700 mb-2" htmlFor="phone">
-                                Telefon
+                            <label className="block text-gray-700 mb-2" htmlFor="username">
+                                Kullanıcı Adı
                             </label>
                             <input
                                 type="text"
-                                id="phone"
+                                id="username"
                                 className="w-full p-2 border border-gray-300 rounded"
-                                placeholder="(5xx) xxx xx xx"
-                                maxLength="10"
-                                onInput={(e) => {
-                                    e.target.value = e.target.value.replace(/[^0-9]/g, '').slice(0, 11);
-                                }}
-                                value={formData.phone}
+                                placeholder="Kullanıcı adı girin"
+                                value={formData.username}
                                 onChange={handleInputChange}
                             />
                         </div>
 
                         {/* E-posta */}
                         <div>
-                            <label className="block text-gray-700 mb-2" htmlFor="email">
+                            <label className="block text-gray-700 mb-2" htmlFor="mail">
                                 E-posta
                             </label>
                             <input
                                 type="email"
-                                id="email"
+                                id="mail"
                                 className="w-full p-2 border border-gray-300 rounded"
-                                placeholder="E-pposta adresini girin"
-                                value={formData.email}
+                                placeholder="E-posta adresini girin"
+                                value={formData.mail}
                                 onChange={handleInputChange}
                             />
                         </div>
