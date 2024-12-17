@@ -114,7 +114,24 @@ const AddApplication = ({ onClose, onSave }) => {
             return;
         }
 
-        onSave(formData);
+        // Backend'in beklediği formatta veri hazırlıyoruz
+        const formattedData = {
+            applicationData: {
+                firstName: formData.adi,
+                lastName: formData.soyadi,
+                applicationType: formData.detaylar.basvuranTuru,
+                applicationDate: formData.detaylar.basvuruTarihi,
+                lawyer: formData.detaylar.takipAvukat,
+                violationReason: formData.ihlalNedeni,
+                submissionType: "Online", // Sabit veya bir input'tan alabilirsiniz
+                handler: formData.detaylar.basvuruyuAlan,
+                description: formData.detaylar.dosyaAciklama,
+                courtInfo: formData.detaylar.davaBilgileri,
+            },
+            violationData: null, // Opsiyonel olarak boş bırakıyoruz
+        };
+
+        onSave(formattedData); // Doğru formatta veriyi gönderiyoruz
         setErrorMessage("");
         setFormData({
             tcKimlikNo: "",
@@ -124,6 +141,7 @@ const AddApplication = ({ onClose, onSave }) => {
             detaylar: {
                 basvuruNumarasi: "",
                 basvuranTuru: "",
+                basvuruTarihi: "",
                 takipAvukat: "",
                 basvuruyuAlan: "",
                 dosyaAciklama: "",
@@ -131,6 +149,10 @@ const AddApplication = ({ onClose, onSave }) => {
         });
         onClose();
     };
+
+
+
+
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center overflow-auto">

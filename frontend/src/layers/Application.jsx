@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { AiOutlineCheck, AiOutlineClose } from "react-icons/ai";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
@@ -14,7 +14,11 @@ const Application = () => {
   const [statuses, setStatuses] = useState({});
   const [selectedDetails, setSelectedDetails] = useState(null);
 
-  const { applications, addApplication } = useApplicationStore();
+  const { applications, addApplication, fetchApplications } = useApplicationStore();
+
+  useEffect(() => {
+    fetchApplications(); // Tüm başvuruları sunucudan çek
+  }, [fetchApplications]);
 
   const filteredApplications = applications.filter((app) => {
     if (searchCriteria === "Reddedildi") {
@@ -28,21 +32,30 @@ const Application = () => {
       searchCriteria === "tcKimlikNo"
         ? app.tcKimlikNo
         : searchCriteria === "adiSoyadi"
-        ? `${app.adi} ${app.soyadi}`
-        : app.ihlalNedeni;
+          ? `${app.adi} ${app.soyadi}`
+          : app.ihlalNedeni;
 
     return valueToSearch.toLowerCase().includes(searchValue.toLowerCase());
   });
 
   const handleShowDetails = (app) => {
-    setSelectedDetails(app.detaylar);
+    setSelectedDetails(app);
   };
 
-  const handleSaveApplication = (data) => {
-    addApplication(data);
-    setShowAddApplication(false);
-    setNotification("Başvuru Başarıyla Eklendi");
-    setTimeout(() => setNotification(""), 3000);
+
+
+  const handleSaveApplication = async (data) => {
+    try {
+      await addApplication(data);
+      setShowAddApplication(false);
+      setNotification("Başvuru Başarıyla Eklendi");
+      setTimeout(() => setNotification(""), 3000);
+      fetchApplications(); // Yeni başvuruları tekrar çek
+    } catch (error) {
+      console.error("Error saving application:", error);
+      setNotification("Başvuru eklenirken bir hata oluştu");
+      setTimeout(() => setNotification(""), 3000);
+    }
   };
 
   const handleStatusChange = (tcKimlikNo, status) => {
@@ -93,8 +106,8 @@ const Application = () => {
                   searchCriteria === "tcKimlikNo"
                     ? "T.C. Kimlik No girin"
                     : searchCriteria === "adiSoyadi"
-                    ? "Başvuruyu Yapan adı girin"
-                    : "İhlal Nedeni girin"
+                      ? "Başvuruyu Yapan adı girin"
+                      : "İhlal Nedeni girin"
                 }
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
@@ -197,5 +210,6 @@ const Application = () => {
     </div>
   );
 };
+
 
 export default Application;

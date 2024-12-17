@@ -1,14 +1,35 @@
 import axios from "axios";
 import { create } from "zustand";
 
+// Backend base URL'sini tanımla
+const BASE_URL = "http://localhost:5000/api/applications";
+
 const useApplicationStore = create((set, get) => ({
   applications: [],
 
   // Başvuruları sunucudan çekme fonksiyonu
   fetchApplications: async () => {
     try {
-      const response = await axios.get("/api/applications");
-      set({ applications: response.data });
+      const response = await axios.get(BASE_URL);
+
+      // Gelen veriyi frontend için formatla
+      const formattedData = response.data.map((app) => ({
+        tcKimlikNo: app.lawyer || "", // T.C. Kimlik No (lawyer alanı kullanılıyor)
+        adi: app.firstName || "", // Adı
+        soyadi: app.lastName || "", // Soyadı
+        ihlalNedeni: app.violationReason || "", // İhlal Nedeni
+        detaylar: {
+          basvuruTuru: app.applicationType || "",
+          basvuruTarihi: app.applicationDate || "",
+          basvuruyuAlan: app.handler || "",
+          dosyaAciklama: app.description || "",
+          dosyaLinkleri: app.fileLinks || [],
+        },
+        status: app.status || "pending", // Durum
+        _id: app._id, // Backend'den dönen ID
+      }));
+
+      set({ applications: formattedData });
     } catch (error) {
       console.error("Error fetching applications:", error);
     }
@@ -17,20 +38,39 @@ const useApplicationStore = create((set, get) => ({
   // Yeni başvuru ekleme fonksiyonu
   addApplication: async (application) => {
     try {
-      const response = await axios.post("/api/applications", application);
-      set((state) => ({ applications: [...state.applications, response.data] }));
+      const response = await axios.post(BASE_URL, application);
+
+      const newApplication = {
+        tcKimlikNo: response.data.lawyer || "",
+        adi: response.data.firstName || "",
+        soyadi: response.data.lastName || "",
+        ihlalNedeni: response.data.violationReason || "",
+        detaylar: {
+          basvuruTuru: response.data.applicationType || "",
+          basvuruTarihi: response.data.applicationDate || "",
+          basvuruyuAlan: response.data.handler || "",
+          dosyaAciklama: response.data.description || "",
+          dosyaLinkleri: response.data.fileLinks || [],
+        },
+        status: response.data.status || "pending",
+        _id: response.data._id,
+      };
+
+      set((state) => ({
+        applications: [...state.applications, newApplication],
+      }));
     } catch (error) {
       console.error("Error adding application:", error);
     }
   },
 
   // Başvuru silme fonksiyonu
-  removeApplication: async (tcKimlikNo) => {
+  removeApplication: async (applicationId) => {
     try {
-      await axios.delete(`/api/applications/${tcKimlikNo}`);
+      await axios.delete(`${BASE_URL}/${applicationId}`);
       set((state) => ({
         applications: state.applications.filter(
-          (app) => app.tcKimlikNo !== tcKimlikNo
+          (app) => app._id !== applicationId
         ),
       }));
     } catch (error) {
@@ -39,15 +79,29 @@ const useApplicationStore = create((set, get) => ({
   },
 
   // Başvuru güncelleme fonksiyonu
-  updateApplication: async (tcKimlikNo, updatedApplication) => {
+  updateApplication: async (applicationId, updatedApplication) => {
     try {
-      const response = await axios.put(
-        `/api/applications/${tcKimlikNo}`,
-        updatedApplication
-      );
+      const response = await axios.put(`${BASE_URL}/${applicationId}`, updatedApplication);
+
+      const updatedApp = {
+        tcKimlikNo: response.data.lawyer || "",
+        adi: response.data.firstName || "",
+        soyadi: response.data.lastName || "",
+        ihlalNedeni: response.data.violationReason || "",
+        detaylar: {
+          basvuruTuru: response.data.applicationType || "",
+          basvuruTarihi: response.data.applicationDate || "",
+          basvuruyuAlan: response.data.handler || "",
+          dosyaAciklama: response.data.description || "",
+          dosyaLinkleri: response.data.fileLinks || [],
+        },
+        status: response.data.status || "pending",
+        _id: response.data._id,
+      };
+
       set((state) => ({
         applications: state.applications.map((app) =>
-          app.tcKimlikNo === tcKimlikNo ? { ...app, ...response.data } : app
+          app._id === applicationId ? updatedApp : app
         ),
       }));
     } catch (error) {
