@@ -12,6 +12,7 @@ const Lawyer = () => {
   const [showAddLawyer, setShowAddLawyer] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [visiblePassword, setVisiblePassword] = useState(null);
+  const [visibleDetails, setVisibleDetails] = useState(null);
 
   // Zustand Store'dan gerekli veriler ve fonksiyonları al
   const { lawyers, addLawyer, removeLawyer, fetchLawyers } = useLawyerStore();
@@ -24,10 +25,16 @@ const Lawyer = () => {
   const handleSaveLawyer = (lawyerData) => {
     addLawyer(lawyerData);
     setShowAddLawyer(false);
+    setNotification("Avukat Başarıyla Eklendi");
+    setTimeout(() => setNotification(""), 3000);
   };
 
   const togglePasswordVisibility = (tcKimlikNo) => {
     setVisiblePassword((prev) => (prev === tcKimlikNo ? null : tcKimlikNo));
+  };
+
+  const toggleDetailsVisibility = (tcKimlikNo) => {
+    setVisibleDetails((prev) => (prev === tcKimlikNo ? null : tcKimlikNo));
   };
 
   const copyToClipboard = (password) => {
@@ -140,19 +147,33 @@ const Lawyer = () => {
                       {lawyer.mail}
                     </td>
                     <td className="border border-gray-300 px-4 py-2 text-center">
-  <button
-    className="p-2 bg-red-500 text-white rounded hover:bg-red-600 flex items-center justify-center"
-    onClick={() =>
-      setConfirmDelete({
-        firstName: lawyer.firstName,
-        lastName: lawyer.lastName,
-        nationalId: lawyer.nationalId,
-      })
-    }
-  >
-    <FaTrash size={12}/>
-  </button>
-</td>
+                      <div className="flex justify-center space-x-2">
+                        <button
+                          className="p-2 bg-red-500 text-white rounded hover:bg-[#002855] flex items-center justify-center"
+                          onClick={() =>
+                            setConfirmDelete({
+                              firstName: lawyer.firstName,
+                              lastName: lawyer.lastName,
+                              nationalId: lawyer.nationalId,
+                            })
+                          }
+                        >
+                          <FaTrash size={12} />
+                        </button>
+                        <button
+                          className="p-2 bg-blue-500 text-white rounded hover:bg-[#002855] flex items-center justify-center"
+                          onClick={() => toggleDetailsVisibility(lawyer.nationalId)}
+                        >
+                          {visibleDetails === lawyer.nationalId ? <FaEyeSlash size={12} /> : <FaEye size={12} />}
+                        </button>
+                      </div>
+                      {visibleDetails === lawyer.nationalId && (
+                        <div className="mt-2 text-sm text-gray-700">
+                          <p><strong>Kullanıcı Adı:</strong> {lawyer.username}</p>
+                          <p><strong>Şifre:</strong> {lawyer.password}</p>
+                        </div>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>

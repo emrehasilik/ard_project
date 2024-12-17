@@ -115,7 +115,7 @@ const Application = () => {
                 Reddedilen
               </button>
               <button
-                className="px-4 py-2 bg-blue-500 text-white font-semibold rounded hover:bg-blue-600"
+                className="px-4 py-2 bg-[#000090] text-white font-semibold rounded hover:bg-[#002855]"
                 onClick={() => setShowAddApplication(true)}
               >
                 Başvuru Ekle

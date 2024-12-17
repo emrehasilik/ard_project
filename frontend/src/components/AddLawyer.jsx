@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { FaEye, FaEyeSlash, FaDice } from "react-icons/fa";
 
 const AddLawyer = ({ onClose, onSave }) => {
     const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ const AddLawyer = ({ onClose, onSave }) => {
     });
 
     const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState("");
 
     const generatePassword = () => {
         const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()";
@@ -35,6 +37,25 @@ const AddLawyer = ({ onClose, onSave }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Validation
+        const fieldNames = {
+            nationalId: "T.C. Kimlik No",
+            firstName: "İsim",
+            lastName: "Soyisim",
+            username: "Kullanıcı Adı",
+            password: "Şifre",
+            mail: "E-posta"
+        };
+
+        for (const [key, value] of Object.entries(formData)) {
+            if (value.trim() === "" && fieldNames[key]) {
+                setError(`Lütfen ${fieldNames[key]} alanını doldurun.`);
+                return;
+            }
+        }
+
+        setError("");
         onSave(formData);
         onClose();
     };
@@ -136,21 +157,23 @@ const AddLawyer = ({ onClose, onSave }) => {
                                 />
                                 <button
                                     type="button"
-                                    className="px-4 py-0 bg-[#002855] text-white rounded hover:bg-[#004080]"
+                                    className="px-4 py-2 text-gray-700 hover:text-[#D4AF37] hover:scale-110 transition-transform duration-200"
                                     onClick={handleGeneratePassword}
                                 >
-                                    Şifre Üret
+                                    <FaDice size={20} />
                                 </button>
                                 <button
                                     type="button"
-                                    className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
+                                    className="px-4 py-2 text-gray-700 hover:text-[#D4AF37] hover:scale-110 transition-transform duration-200"
                                     onClick={() => setShowPassword(!showPassword)}
                                 >
-                                    {showPassword ? "Gizle" : "Göster"}
+                                    {showPassword ? <FaEyeSlash size={20} /> : <FaEye size={20} />}
                                 </button>
                             </div>
                         </div>
                     </div>
+
+                    {error && <p className="text-red-500 mb-4">{error}</p>}
 
                     <div className="flex justify-end">
                         <button
