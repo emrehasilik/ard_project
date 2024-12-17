@@ -40,7 +40,12 @@ const AddApplication = ({ onClose, onSave }) => {
         }));
     }, []);
 
-    const { lawyers } = useLawyerStore();
+    const { lawyers, fetchLawyers } = useLawyerStore();
+
+    useEffect(() => {
+        fetchLawyers();
+    }, [fetchLawyers]);
+
     const [isCourtInfoAvailable, setIsCourtInfoAvailable] = useState(false);
     const [isSelfApplicant, setIsSelfApplicant] = useState(false);
     const [isCustomReason, setIsCustomReason] = useState(false);
@@ -203,7 +208,7 @@ const AddApplication = ({ onClose, onSave }) => {
                             type="select"
                             value={formData.detaylar.takipAvukat}
                             onChange={handleInputChange}
-                            options={lawyers.map((lawyer) => `${lawyer.name} ${lawyer.surname}`)}
+                            options={lawyers.map((lawyer) => `${lawyer.firstName} ${lawyer.lastName}`)}
                         />
                         <div>
                             <FormField
