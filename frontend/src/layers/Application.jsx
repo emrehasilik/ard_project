@@ -17,7 +17,7 @@ const Application = () => {
   const { applications, addApplication, fetchApplications, updateApplication } = useApplicationStore();
 
   useEffect(() => {
-    fetchApplications(); // Tüm başvuruları sunucudan çek
+    fetchApplications();
   }, [fetchApplications]);
 
   const filteredApplications = applications.filter((app) => {
@@ -48,7 +48,7 @@ const Application = () => {
       setShowAddApplication(false);
       setNotification("Başvuru Başarıyla Eklendi");
       setTimeout(() => setNotification(""), 3000);
-      fetchApplications(); // Yeni başvuruları tekrar çek
+      fetchApplications();
     } catch (error) {
       console.error("Error saving application:", error);
       setNotification("Başvuru eklenirken bir hata oluştu");
@@ -58,10 +58,8 @@ const Application = () => {
 
   const handleStatusChange = async (applicationId, newStatus) => {
     try {
-      // Durumu backend'e gönder
       await updateApplication(applicationId, { status: newStatus });
-      
-      // UI için güncelleme
+
       setStatuses((prevStatuses) => ({ ...prevStatuses, [applicationId]: newStatus }));
       setNotification("Durum güncellendi");
       setTimeout(() => setNotification(""), 3000);
@@ -84,7 +82,7 @@ const Application = () => {
   };
 
   return (
-    <div className="flex h-screen">
+    <div className="flex h-screen bg-[#F5F5F5]">
       <Sidebar />
 
       <div className="flex-1 flex flex-col">
@@ -96,7 +94,7 @@ const Application = () => {
           </div>
         )}
 
-        <div className="flex-1 flex flex-col bg-gray-200 p-8">
+        <div className="flex-1 flex flex-col bg-white p-8 rounded-lg shadow-md">
           <div className="flex justify-between mb-4">
             <div className="flex items-center space-x-2">
               <select
@@ -110,7 +108,7 @@ const Application = () => {
               </select>
               <input
                 type="text"
-                className="border border-gray-300 rounded px-4 py-2 flex-grow mr-4"
+                className="border border-gray-300 rounded px-4 py-2 flex-grow focus:outline-none focus:ring-2 focus:ring-[#D4AF37]"
                 placeholder={
                   searchCriteria === "tcKimlikNo"
                     ? "T.C. Kimlik No girin"
@@ -137,7 +135,7 @@ const Application = () => {
                 Reddedilen
               </button>
               <button
-                className="px-4 py-2 bg-[#000090] text-white font-semibold rounded hover:bg-[#002855]"
+                className="px-4 py-2 bg-[#002855] text-white font-semibold rounded hover:bg-[#004080]"
                 onClick={() => setShowAddApplication(true)}
               >
                 Başvuru Ekle
@@ -147,7 +145,7 @@ const Application = () => {
 
           <div className="text-gray-700 max-h-[520px] w-full overflow-y-auto">
             <table className="table-auto w-full border border-gray-300">
-              <thead className="bg-gray-100">
+              <thead className="bg-[#002855] text-white">
                 <tr>
                   <th className="border border-gray-300 px-4 py-2">T.C. Kimlik No</th>
                   <th className="border border-gray-300 px-4 py-2">Başvuruyu Yapan</th>
@@ -159,10 +157,7 @@ const Application = () => {
               </thead>
               <tbody>
                 {filteredApplications.map((app, index) => (
-                  <tr
-                    key={app._id}
-                    className={index % 2 === 0 ? "bg-white" : "bg-gray-100"}
-                  >
+                  <tr key={app._id} className={index % 2 === 0 ? "bg-white" : "bg-gray-100"}>
                     <td className="border border-gray-300 px-4 py-2">{app.tcKimlikNo}</td>
                     <td className="border border-gray-300 px-4 py-2">{`${app.adi} ${app.soyadi}`}</td>
                     <td className="border border-gray-300 px-4 py-2">{app.ihlalNedeni}</td>
@@ -174,11 +169,7 @@ const Application = () => {
                         Detaylar
                       </button>
                     </td>
-                    <td
-                      className={`border border-gray-300 px-4 py-2 ${getStatusClass(
-                        statuses[app._id] || app.status || "pending"
-                      )}`}
-                    >
+                    <td className={`border border-gray-300 px-4 py-2 ${getStatusClass(statuses[app._id] || app.status || "pending")}`}>
                       {statuses[app._id] || app.status || "Bekliyor"}
                     </td>
                     <td className="border border-gray-300 px-4 py-2">
@@ -201,19 +192,12 @@ const Application = () => {
                 ))}
               </tbody>
             </table>
-
-            <ApplicationDetails
-              details={selectedDetails}
-              onClose={() => setSelectedDetails(null)}
-            />
+            <ApplicationDetails details={selectedDetails} onClose={() => setSelectedDetails(null)} />
           </div>
         </div>
 
         {showAddApplication && (
-          <AddApplication
-            onClose={() => setShowAddApplication(false)}
-            onSave={handleSaveApplication}
-          />
+          <AddApplication onClose={() => setShowAddApplication(false)} onSave={handleSaveApplication} />
         )}
       </div>
     </div>
