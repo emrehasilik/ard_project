@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   createApplicationWithViolation,
   getApplicationWithViolation,
+  updateApplication // Bu fonksiyonu da oluşturacağız
 } from "../controllers/application";
 import Application from "../models/application";
 
@@ -16,7 +17,6 @@ router.get("/", async (req, res) => {
     const applications = await Application.find();
     res.status(200).json(applications);
   } catch (err) {
-    // Hatanın türünü Error olarak dönüştürme
     const errorMessage = err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.";
     res.status(500).json({ error: errorMessage });
   }
@@ -24,5 +24,8 @@ router.get("/", async (req, res) => {
 
 // GET: Belirli Başvuruyu ID ile Getir
 router.get("/:id", getApplicationWithViolation);
+
+// PUT: Belirli Başvuruyu ID ile Güncelle
+router.put("/:id", updateApplication);
 
 export default router;
