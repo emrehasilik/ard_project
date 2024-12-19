@@ -6,16 +6,14 @@ import CaseEdit from "../components/CaseEdit";
 import CaseDetails from "../components/CaseDetails";
 
 const Case = () => {
-  const { applications, updateApplication, removeApplication } = useApplicationStore();
+  const { getApprovedApplications, updateApplication, removeApplication } = useApplicationStore();
   const [selectedDetails, setSelectedDetails] = useState(null); // Detayları göstermek için state
   const [editingCase, setEditingCase] = useState(null); // Düzenleme için state
   const [searchCriteria, setSearchCriteria] = useState("tcKimlikNo");
   const [searchValue, setSearchValue] = useState("");
 
-  // Onaylanan başvuruları filtreliyoruz
-  const approvedCases = applications.filter(
-    (app) => app.status === "Onaylandı"
-  ).filter((app) => {
+  // Onaylanan başvuruları alıyoruz
+  const approvedCases = getApprovedApplications().filter((app) => {
     if (!searchValue) return true;
     const valueToSearch =
       searchCriteria === "tcKimlikNo"

@@ -106,6 +106,11 @@ const useApplicationStore = create((set, get) => ({
       console.error("Error updating application:", error);
     }
   },
+
+  // Onaylanan başvuruları filtreleyen fonksiyon
+  getApprovedApplications: () => {
+    return get().applications.filter((app) => app.status === "approved");
+  },
 }));
 
 export default useApplicationStore;
