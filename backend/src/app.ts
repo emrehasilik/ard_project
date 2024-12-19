@@ -10,6 +10,7 @@ import caseRoutes from "./routers/case";
 import violationRoutes from "./routers/violation";
 import uploadDocsRouter from "./routers/uploadDocsRouter";
 import lawyerRoutes from "./routers/lawyer";
+import loginRouter from "./routers/login"; // Login rotası için import
 
 dotenv.config();
 
@@ -30,23 +31,25 @@ const limiter = rateLimit({
   message: process.env.RATE_LIMIT_MESSAGE || "Too many requests from this IP, please try again later",
 });
 
-app.use(limiter);// tüm rotalar için
+app.use(limiter); // tüm rotalar için
 
-const userApiPath=process.env.USER_API || "/api/users"
-const applicationApiPath=process.env.APPLICATION_API || "/api/applications"
-const uploadFolderApiPath=process.env.S3RoutesAPI || "/api/s3"
+const userApiPath = process.env.USER_API || "/api/users";
+const applicationApiPath = process.env.APPLICATION_API || "/api/applications";
+const uploadFolderApiPath = process.env.S3RoutesAPI || "/api/s3";
 const violationApiPath = process.env.VIOLATION_API || "/api/violations";
-const casesApiPath=process.env.CASE_API || "/api/cases"
-const docsApiPath=process.env.DOCS_API|| "/api/docs"
+const casesApiPath = process.env.CASE_API || "/api/cases";
+const docsApiPath = process.env.DOCS_API || "/api/docs";
 const lawyerApiPath = "/api/lawyers";
+const loginApiPath = "/api/auth"; // Login için yeni path
 
 app.use(userApiPath, userRoutes);
-app.use(applicationApiPath,application );
+app.use(applicationApiPath, application);
 app.use(uploadFolderApiPath, uploadFolder);
 app.use(violationApiPath, violationRoutes);
-app.use(casesApiPath , caseRoutes);
+app.use(casesApiPath, caseRoutes);
 app.use(docsApiPath, uploadDocsRouter);
 app.use(lawyerApiPath, lawyerRoutes);
+app.use(loginApiPath, loginRouter); // Login rotasını ekle
 
 mongoose
   .connect(process.env.MONGO_URI || "")

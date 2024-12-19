@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "../axiosInstance"; // Axios instance import edildi
 import { FaUser, FaLock } from "react-icons/fa";
 
 const Login = () => {
@@ -12,12 +13,15 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.username === "admin" && formData.password === "1234") {
-      navigate("/basvurular"); // Başarı durumunda rota değiştir
-    } else {
-      setError("Geçersiz kullanıcı adı veya şifre!");
+    try {
+      const response = await axios.post("/api/auth/login", formData); // Axios instance kullanılıyor
+      if (response.status === 200) {
+        navigate("/basvurular"); // Giriş başarılı olursa yönlendir
+      }
+    } catch (error) {
+      setError(error.response?.data?.message || "Bir hata oluştu! Lütfen tekrar deneyin.");
     }
   };
 
@@ -26,12 +30,8 @@ const Login = () => {
       <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8 border-2 border-[#D4AF37]">
         <h2 className="text-2xl font-bold text-center text-[#002855] mb-6">Baro Komisyonu</h2>
         <form onSubmit={handleSubmit}>
-          {/* Kullanıcı Adı */}
           <div className="mb-4">
-            <label
-              htmlFor="username"
-              className="block text-gray-700 font-semibold mb-2"
-            >
+            <label htmlFor="username" className="block text-gray-700 font-semibold mb-2">
               Kullanıcı Adı
             </label>
             <div className="flex items-center border border-gray-300 rounded">
@@ -49,13 +49,8 @@ const Login = () => {
               />
             </div>
           </div>
-
-          {/* Şifre */}
           <div className="mb-4">
-            <label
-              htmlFor="password"
-              className="block text-gray-700 font-semibold mb-2"
-            >
+            <label htmlFor="password" className="block text-gray-700 font-semibold mb-2">
               Şifre
             </label>
             <div className="flex items-center border border-gray-300 rounded">
@@ -73,11 +68,7 @@ const Login = () => {
               />
             </div>
           </div>
-
-          {/* Hata Mesajı */}
           {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
-
-          {/* Giriş Butonu */}
           <button
             type="submit"
             className="w-full bg-[#D4AF37] hover:bg-[#B89B2F] text-black font-semibold py-2 px-4 rounded focus:outline-none"
