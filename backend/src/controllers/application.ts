@@ -19,6 +19,7 @@ export const createApplicationWithViolation = async (req: Request, res: Response
     // Başvuru Verisi Kaydet
     const application = new Application({
       ...applicationData,
+      nationalId: applicationData.nationalId, // T.C. Kimlik No ekleniyor
       violationId, // Hak ihlali referansı ekleniyor
     });
 
@@ -31,14 +32,16 @@ export const createApplicationWithViolation = async (req: Request, res: Response
     });
   }
 };
-//güncelleme
+
+// Başvuru Güncelleme
 export const updateApplication = async (req: Request, res: Response): Promise<void> => {
   try {
     const { id } = req.params; // URL parametre
     const updatedData = req.body; // Gövde parametreleri
     const updatedApp = await Application.findByIdAndUpdate(id, updatedData, { new: true });
     if (!updatedApp) {
-      return 
+      res.status(404).json({ error: "Application not found" });
+      return;
     }
     res.status(200).json(updatedApp);
   } catch (error) {

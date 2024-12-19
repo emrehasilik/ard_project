@@ -15,9 +15,9 @@ export interface IViolation extends Document {
 }
 
 const ViolationSchema: Schema = new Schema({
-  scanningPeriod: { type: String, required: true }, // Tarama Dönemi
-  eventCategory: { type: String, required: true }, // Olay Kategorisi
-  eventSummary: { type: String, required: true }, // Olay Özeti
+  scanningPeriod: { type: String, required: false }, // Tarama Dönemi
+  eventCategory: { type: String, required: false }, // Olay Kategorisi
+  eventSummary: { type: String, required: false }, // Olay Özeti
   source: { type: String }, // Kaynak
   link: { type: String }, // Genel Link
   visualLink: { type: String }, // Görsel Link
@@ -28,7 +28,7 @@ const ViolationSchema: Schema = new Schema({
   dataCategory: {
     type: String,
     enum: ["media", "ngo", "barCommission", "publicInstitution"],
-    required: true,
+    required: false,
   }, // Veri Kategorisi
 });
 

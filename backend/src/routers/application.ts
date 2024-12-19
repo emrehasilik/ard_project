@@ -2,7 +2,7 @@ import { Router } from "express";
 import {
   createApplicationWithViolation,
   getApplicationWithViolation,
-  updateApplication // Bu fonksiyonu da oluşturacağız
+  updateApplication,
 } from "../controllers/application";
 import Application from "../models/application";
 
@@ -17,7 +17,8 @@ router.get("/", async (req, res) => {
     const applications = await Application.find();
     res.status(200).json(applications);
   } catch (err) {
-    const errorMessage = err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.";
+    const errorMessage =
+      err instanceof Error ? err.message : "Bilinmeyen bir hata oluştu.";
     res.status(500).json({ error: errorMessage });
   }
 });

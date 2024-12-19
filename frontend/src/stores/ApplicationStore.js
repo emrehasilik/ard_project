@@ -14,7 +14,7 @@ const useApplicationStore = create((set, get) => ({
 
       // Gelen veriyi frontend için formatla
       const formattedData = response.data.map((app) => ({
-        tcKimlikNo: app.lawyer || "", // T.C. Kimlik No (lawyer alanı kullanılıyor)
+        tcKimlikNo: app.nationalId || "", // T.C. Kimlik No
         adi: app.firstName || "", // Adı
         soyadi: app.lastName || "", // Soyadı
         ihlalNedeni: app.violationReason || "", // İhlal Nedeni
@@ -41,7 +41,7 @@ const useApplicationStore = create((set, get) => ({
       const response = await axios.post(BASE_URL, application);
 
       const newApplication = {
-        tcKimlikNo: response.data.lawyer || "",
+        tcKimlikNo: response.data.nationalId || "", // T.C. Kimlik No
         adi: response.data.firstName || "",
         soyadi: response.data.lastName || "",
         ihlalNedeni: response.data.violationReason || "",
@@ -84,7 +84,7 @@ const useApplicationStore = create((set, get) => ({
       const response = await axios.put(`${BASE_URL}/${applicationId}`, updatedApplication);
 
       const updatedApp = {
-        tcKimlikNo: response.data.lawyer || "",
+        tcKimlikNo: response.data.nationalId || "", // T.C. Kimlik No
         adi: response.data.firstName || "",
         soyadi: response.data.lastName || "",
         ihlalNedeni: response.data.violationReason || "",
