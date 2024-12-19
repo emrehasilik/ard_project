@@ -31,7 +31,21 @@ export const createApplicationWithViolation = async (req: Request, res: Response
     });
   }
 };
-
+//güncelleme
+export const updateApplication = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { id } = req.params; // URL parametre
+    const updatedData = req.body; // Gövde parametreleri
+    const updatedApp = await Application.findByIdAndUpdate(id, updatedData, { new: true });
+    if (!updatedApp) {
+      return 
+    }
+    res.status(200).json(updatedApp);
+  } catch (error) {
+    console.error("Error updating application:", error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
 
 // Hak İhlalini Getirerek Başvuruyu Listele
 export const getApplicationWithViolation = async (req: Request, res: Response): Promise<void> => {
