@@ -5,7 +5,6 @@ import FormField from "./ApplicationFormField";
 import { validateForm } from "../utils/validation";
 import ViolationForm from "./ViolationForm";
 
-
 const AddApplication = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
     tcKimlikNo: "",
@@ -41,7 +40,6 @@ const AddApplication = ({ onClose, onSave }) => {
     dataCategory: "",
   });
   const [isViolationInfoAvailable, setIsViolationInfoAvailable] = useState(false);
-  
 
   const [isCourtInfoAvailable, setIsCourtInfoAvailable] = useState(false);
   const [isSelfApplicant, setIsSelfApplicant] = useState(false);
@@ -76,14 +74,15 @@ const AddApplication = ({ onClose, onSave }) => {
     "detaylar.dosyaAciklama": "Dosya Açıklaması",
   };
 
+  // Dosya açıklamasını zorunlu kılmayın, sadece diğer alanları zorunlu yapın
   const requiredFields = [
     "tcKimlikNo",
     "adi",
     "soyadi",
     "ihlalNedeni",
     "detaylar.basvuranTuru",
-    "detaylar.takipAvukat",
-    "detaylar.dosyaAciklama",
+    "detaylar.takipAvukat"
+    // "detaylar.dosyaAciklama" alanını buradan kaldırdık
   ];
 
   const handleInputChange = (e) => {
@@ -122,24 +121,31 @@ const AddApplication = ({ onClose, onSave }) => {
     const selectedFiles = Array.from(e.target.files);
     setFiles(selectedFiles);
   };
+
   const handleSubmit = (e) => {
     e.preventDefault();
   
-    if (files.length === 0) {
-      setErrorMessage("Dosya eklemeden açıklama yapamazsınız. Lütfen dosya yükleyin.");
-      return;
-    }
-  
+    // Form doğrulaması
     const error = validateForm(formData, fieldNames, requiredFields);
     if (error) {
       setErrorMessage(error);
       return;
     }
   
+    // Eğer dosya varsa ve dosya açıklaması girilmemişse uyarı ver
+    if (files.length > 0 && !formData.detaylar.dosyaAciklama.trim()) {
+      setErrorMessage("Dosya eklediğinizde dosya açıklaması girmek zorundasınız.");
+      return;
+    }
+  
     const fileLinks = files.map((file) => file.name);
+  
+    // Dosya açıklaması sadece dosya yüklendiyse eklenir
+    const description = files.length > 0 ? formData.detaylar.dosyaAciklama : "";
   
     const formattedData = {
       applicationData: {
+        nationalId: formData.tcKimlikNo, // nationalId backend'e gönderiliyor
         firstName: formData.adi,
         lastName: formData.soyadi,
         applicationType: formData.detaylar.basvuranTuru,
@@ -147,7 +153,7 @@ const AddApplication = ({ onClose, onSave }) => {
         lawyer: formData.detaylar.takipAvukat,
         violationReason: formData.ihlalNedeni,
         submissionType: "Online",
-        description: formData.detaylar.dosyaAciklama,
+        description,
         courtInfo: {
           caseNumber: formData.detaylar.davaBilgileri.dosyaNumarasi || "",
           courtName: formData.detaylar.davaBilgileri.mahkeme || "",
@@ -157,47 +163,11 @@ const AddApplication = ({ onClose, onSave }) => {
         },
         fileLinks: fileLinks,
       },
-      violationData: isViolationInfoAvailable ? violationData : null, // İhlal bilgisi varsa ekle
+      violationData: isViolationInfoAvailable ? violationData : null,
     };
   
     onSave(formattedData);
     setErrorMessage("");
-  
-    setFormData({
-      tcKimlikNo: "",
-      adi: "",
-      soyadi: "",
-      ihlalNedeni: "",
-      detaylar: {
-        basvuranTuru: "",
-        basvuruTarihi: "",
-        takipAvukat: "",
-        dosyaAciklama: "",
-        davaBilgileri: {
-          dosyaNumarasi: "",
-          mahkeme: "",
-          mahkemeDosyaNo: "",
-          sonucuAciklama: "",
-          sonucuAsama: "",
-        },
-      },
-    });
-    setFiles([]);
-    setViolationData({
-      scanningPeriod: "",
-      eventCategory: "",
-      eventSummary: "",
-      source: "",
-      link: "",
-      visualLink: "",
-      uploadedFiles: [],
-      reportingOrganization: "",
-      takenByCommission: "",
-      publicInstitution: "",
-      dataCategory: "",
-    });
-    setIsViolationInfoAvailable(false);
-    onClose();
   };
   
 
@@ -277,7 +247,7 @@ const AddApplication = ({ onClose, onSave }) => {
                 placeholder="Dosya açıklamasını girin"
                 value={formData.detaylar.dosyaAciklama}
                 onChange={handleInputChange}
-                disabled={files.length === 0}
+                disabled={files.length === 0} // Dosya eklenmediyse açıklama yapılamaz
               />
               <div className="mt-2 flex justify-start space-x-4">
                 <label className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">
@@ -303,13 +273,13 @@ const AddApplication = ({ onClose, onSave }) => {
             isCourtInfoAvailable={isCourtInfoAvailable}
             setIsCourtInfoAvailable={setIsCourtInfoAvailable}
           />
+          
           <ViolationForm
-  violationData={violationData}
-  setViolationData={setViolationData}
-  isViolationInfoAvailable={isViolationInfoAvailable}
-  setIsViolationInfoAvailable={setIsViolationInfoAvailable}
-/>
-
+            violationData={violationData}
+            setViolationData={setViolationData}
+            isViolationInfoAvailable={isViolationInfoAvailable}
+            setIsViolationInfoAvailable={setIsViolationInfoAvailable}
+          />
 
           {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
 

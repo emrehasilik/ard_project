@@ -41,7 +41,7 @@ const useApplicationStore = create((set, get) => ({
       const response = await axios.post(BASE_URL, application);
 
       const newApplication = {
-        tcKimlikNo: response.data.nationalId || "", // T.C. Kimlik No
+        tcKimlikNo: response.data.nationalId || "",
         adi: response.data.firstName || "",
         soyadi: response.data.lastName || "",
         ihlalNedeni: response.data.violationReason || "",
@@ -69,9 +69,7 @@ const useApplicationStore = create((set, get) => ({
     try {
       await axios.delete(`${BASE_URL}/${applicationId}`);
       set((state) => ({
-        applications: state.applications.filter(
-          (app) => app._id !== applicationId
-        ),
+        applications: state.applications.filter((app) => app._id !== applicationId),
       }));
     } catch (error) {
       console.error("Error removing application:", error);

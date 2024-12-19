@@ -32,7 +32,7 @@ const ApplicationSchema: Schema = new Schema({
   lawyer: { type: String, required: true },
   violationReason: { type: String, required: true },
   submissionType: { type: String, required: true },
-  handler: { type: String, required: true },
+  handler: { type: String, required: false },
   description: { type: String },
   courtInfo: {
     caseNumber: { type: String },
