@@ -1,11 +1,19 @@
 import { Request, Response } from "express";
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
 import dotenv from "dotenv";
-import axios from "axios";
-import FormData from "form-data";
 import Doc from "../models/docs";
 import Case from "../models/case";
 
 dotenv.config();
+
+// AWS S3 Client
+const s3 = new S3Client({
+  region: process.env.AWS_REGION,
+  credentials: {
+    accessKeyId: process.env.AWS_ACCESS_KEY_ID || "",
+    secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || "",
+  },
+});
 
 export const uploadDocsToS3 = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -23,44 +31,25 @@ export const uploadDocsToS3 = async (req: Request, res: Response): Promise<void>
       return;
     }
 
-    // Çevre değişkenlerinin doğruluğunu kontrol et
-    const s3Project = process.env.S3_PROJECT;
-    const s3Bucket = process.env.S3_BUCKET;
-    const s3AccessKey = process.env.S3_ACCESS_KEY;
-    const s3UploadUrl = process.env.S3_UPLOAD_URL;
-
-    if (!s3Project || !s3Bucket || !s3AccessKey || !s3UploadUrl) {
-      res.status(500).json({
-        error: "S3 environment variables are not properly configured.",
-      });
-      return;
-    }
-
     const uploadedFiles: Record<string, string[]> = {};
 
     for (const fieldName in files) {
       const fileArray = files[fieldName];
       const urls = await Promise.all(
         fileArray.map(async (file) => {
-          const formData = new FormData();
           const uniqueFileName = `${Date.now()}-${file.originalname}`;
-          
-          // FormData'ya güvenli bir şekilde verileri ekle
-          formData.append("project", s3Project);
-          formData.append("bucket", s3Bucket);
-          formData.append("accessKey", s3AccessKey);
-          formData.append("file", file.buffer, uniqueFileName);
+          const params = {
+            Bucket: process.env.AWS_BUCKET || "", // S3 bucket adı
+            Key: uniqueFileName, // Benzersiz dosya adı
+            Body: file.buffer, // Dosya içeriği
+            ContentType: file.mimetype, // Dosya türü
+          };
 
-          const response = await axios.post(s3UploadUrl, formData, {
-            headers: { ...formData.getHeaders() },
-          });
+          const command = new PutObjectCommand(params);
+          await s3.send(command);
 
-          if (response.status === 200) {
-            const data = response.data as { files: { url: string }[] };
-            return data.files[0].url; // S3'ten dönen dosya linki
-          } else {
-            throw new Error("Failed to upload file to S3");
-          }
+          // Yüklenen dosyanın URL'sini oluştur
+          return `https://${params.Bucket}.s3.${process.env.AWS_REGION}.amazonaws.com/${params.Key}`;
         })
       );
 
@@ -101,6 +90,7 @@ export const uploadDocsToS3 = async (req: Request, res: Response): Promise<void>
       updatedCase,
     });
   } catch (err) {
+    console.error("Upload error:", err);
     res.status(500).json({
       error: err instanceof Error ? err.message : "An unknown error occurred.",
     });
