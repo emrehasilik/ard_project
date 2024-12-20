@@ -15,11 +15,28 @@ export const createCase = async (req: Request, res: Response): Promise<void> => 
   }
 };
 
-// Tüm Davaları Listele
+// Tüm Davaları Listele (Baro için)
 export const getAllCases = async (req: Request, res: Response): Promise<void> => {
   try {
     const cases = await Case.find().populate("parties.lawyer");
     res.status(200).json(cases);
+  } catch (err) {
+    res.status(500).json({
+      error: err instanceof Error ? err.message : "An unknown error occurred.",
+    });
+  }
+};
+
+// Avukata atanan davaları listele
+export const getAssignedCases = async (req: Request, res: Response): Promise<void> => {
+  try {
+    if (!req.user) {
+      res.status(401).json({ message: "Unauthorized" });
+      return;
+    }
+    const lawyerId = req.user.id;
+    const assignedCases = await Case.find({ "parties.lawyer": lawyerId }).populate("parties.lawyer");
+    res.status(200).json(assignedCases);
   } catch (err) {
     res.status(500).json({
       error: err instanceof Error ? err.message : "An unknown error occurred.",

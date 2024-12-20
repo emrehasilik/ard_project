@@ -24,10 +24,12 @@ const Lawyer = () => {
 
   const handleSaveLawyer = (lawyerData) => {
     addLawyer(lawyerData);
+    fetchLawyers(); // Listeyi yeniden çek
     setShowAddLawyer(false);
     setNotification("Avukat Başarıyla Eklendi");
     setTimeout(() => setNotification(""), 3000);
   };
+  
 
   const togglePasswordVisibility = (tcKimlikNo) => {
     setVisiblePassword((prev) => (prev === tcKimlikNo ? null : tcKimlikNo));

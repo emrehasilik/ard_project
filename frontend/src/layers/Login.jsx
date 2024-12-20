@@ -1,10 +1,12 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 import { FaUser, FaLock } from "react-icons/fa";
 
 const Login = () => {
   const [formData, setFormData] = useState({ username: "", password: "" });
   const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState(""); // Avukat girişi başarılı mesajı için state
   const navigate = useNavigate();
 
   const handleInputChange = (e) => {
@@ -12,30 +14,55 @@ const Login = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    if (formData.username === "admin" && formData.password === "1234") {
-      navigate("/basvurular"); // Başarı durumunda rota değiştir
-    } else {
+    setError("");
+    setSuccessMessage("");
+    try {
+      const response = await axios.post("http://localhost:5000/auth/login", formData);
+      const token = response.data.token;
+
+      // Token'ı localStorage'a kaydet
+      localStorage.setItem("token", token);
+
+      // Token'dan kullanıcı rolünü çözümle
+      const decodedToken = JSON.parse(atob(token.split(".")[1])); 
+      const userRole = decodedToken.role[0]; // İlk rolü al
+
+      // Kullanıcı rolüne göre yönlendirme veya mesaj
+      if (userRole === "Baro") {
+        navigate("/basvurular");
+      } else if (userRole === "lawyer") {
+        // Avukat rolü için henüz sayfa yok, sadece mesaj göster
+        setSuccessMessage("Avukat girişi başarılı!");
+      } else {
+        setError("Geçersiz kullanıcı rolü!");
+      }
+    } catch (error) {
       setError("Geçersiz kullanıcı adı veya şifre!");
     }
   };
 
   return (
-    <div className="flex h-screen bg-[#002855] items-center justify-center">
-      <div className="w-full max-w-md bg-white rounded-lg shadow-md p-8 border-2 border-[#D4AF37]">
-        <h2 className="text-2xl font-bold text-center text-[#002855] mb-6">Baro Komisyonu</h2>
+    <div
+      className="flex h-screen bg-cover bg-center items-center justify-center"
+      style={{ backgroundImage: "url('/loginpages.jpg')" }}
+    >
+      <div className="w-full max-w-md bg-white rounded-lg shadow-lg p-10 border-t-4 border-[#D4AF37]">
+        <h2 className="text-3xl font-bold text-center text-[#002855] mb-8">
+          Baro Komisyonu Giriş
+        </h2>
         <form onSubmit={handleSubmit}>
           {/* Kullanıcı Adı */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
               htmlFor="username"
-              className="block text-gray-700 font-semibold mb-2"
+              className="block text-gray-700 font-medium mb-2"
             >
               Kullanıcı Adı
             </label>
-            <div className="flex items-center border border-gray-300 rounded">
-              <span className="px-3 text-gray-500">
+            <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-[#D4AF37]">
+              <span className="px-4 text-gray-500">
                 <FaUser />
               </span>
               <input
@@ -44,22 +71,22 @@ const Login = () => {
                 name="username"
                 value={formData.username}
                 onChange={handleInputChange}
-                className="w-full p-2 focus:outline-none"
+                className="w-full p-3 focus:outline-none bg-transparent"
                 placeholder="Kullanıcı adınızı girin"
               />
             </div>
           </div>
 
           {/* Şifre */}
-          <div className="mb-4">
+          <div className="mb-6">
             <label
               htmlFor="password"
-              className="block text-gray-700 font-semibold mb-2"
+              className="block text-gray-700 font-medium mb-2"
             >
               Şifre
             </label>
-            <div className="flex items-center border border-gray-300 rounded">
-              <span className="px-3 text-gray-500">
+            <div className="flex items-center border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-[#D4AF37]">
+              <span className="px-4 text-gray-500">
                 <FaLock />
               </span>
               <input
@@ -68,19 +95,28 @@ const Login = () => {
                 name="password"
                 value={formData.password}
                 onChange={handleInputChange}
-                className="w-full p-2 focus:outline-none"
+                className="w-full p-3 focus:outline-none bg-transparent"
                 placeholder="Şifrenizi girin"
               />
             </div>
           </div>
 
           {/* Hata Mesajı */}
-          {error && <p className="text-red-500 mb-4 text-sm">{error}</p>}
+          {error && (
+            <p className="text-red-500 text-center mb-6 text-sm">{error}</p>
+          )}
+
+          {/* Başarı Mesajı (Avukat girişi) */}
+          {successMessage && (
+            <p className="text-green-600 text-center mb-6 text-sm">
+              {successMessage}
+            </p>
+          )}
 
           {/* Giriş Butonu */}
           <button
             type="submit"
-            className="w-full bg-[#D4AF37] hover:bg-[#B89B2F] text-black font-semibold py-2 px-4 rounded focus:outline-none"
+            className="w-full bg-[#D4AF37] hover:bg-[#B89B2F] text-white font-semibold py-3 px-6 rounded-lg focus:outline-none transition-all duration-200"
           >
             Giriş Yap
           </button>

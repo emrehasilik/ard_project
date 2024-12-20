@@ -15,7 +15,7 @@
     "noImplicitAny": true
   },
   "include": [
-    "src/**/*.ts",
-    "declarations.d.ts"  // Burada 'declarations.d.ts' dosyasını dahil ediyoruz
+    "src/**/*.ts",           // Tüm TypeScript dosyalarını dahil eder
+    "src/custom.d.ts"  // Özel tip tanımlarınızı dahil edin
   ]
 }

@@ -1,37 +1,32 @@
-import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
-import User from '../models/user'; // Doğru yol ile değiştirin
+import { Request, Response } from "express";
+import jwt from "jsonwebtoken";
+import User from "../models/user";
 
-// Kullanıcı Kimlik Doğrulama Middleware
-export const authenticate = (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(' ')[1]; // Bearer token'den JWT alınır
-  if (!token) {
-    return res.status(401).json({ message: 'Yetkilendirme gerekli' });
-  }
+export const login = async (req: Request, res: Response): Promise<void> => {
+  const { username, password } = req.body;
 
   try {
-    if (!process.env.JWT_SECRET_KEY) {
-      return res.status(500).json({ message: 'JWT secret key is not defined' });
+    const user = await User.findOne({ username });
+    if (!user) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
     }
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY) as { id: string };
-    req.userId = decoded.id; // Request nesnesine userId ekleniyor
-    next();
-  } catch (error) {
-    res.status(401).json({ message: 'Geçersiz token' });
-  }
-};
 
-// Rol Kontrol Middleware
-export const checkRole = (role: string) => {
-  return async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const user = await User.findById(req.userId); // Kullanıcı kimliği üzerinden user çekilir
-      if (!user || !user.role.includes(role)) {
-        return res.status(403).json({ message: 'Erişim izniniz yok' });
-      }
-      next();
-    } catch (error) {
-      res.status(500).json({ message: 'Bir hata oluştu' });
-    }
-  };
+    const isPasswordValid = await user.comparePassword(password);
+    if (!isPasswordValid) {
+      res.status(401).json({ message: "Invalid credentials" });
+      return;
+    }
+
+    // Kullanıcı rolünü ve id'sini token'a ekle
+    const token = jwt.sign(
+      { id: user._id, role: user.role }, 
+      process.env.JWT_SECRET || "default_secret",
+      { expiresIn: "1h" }
+    );
+
+    res.json({ token });
+  } catch (error) {
+    res.status(500).json({ message: "An error occurred", error });
+  }
 };

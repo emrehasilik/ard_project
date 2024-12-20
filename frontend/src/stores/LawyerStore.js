@@ -16,17 +16,25 @@ const useLawyerStore = create((set, get) => ({
     }
   },
 // avukat ekleme
-  addLawyer: async (lawyer) => {
-    try {
-      const response = await axios.post("http://localhost:5000/api/lawyers", lawyer);
-      // Yeni eklenen avukatı mevcut listeye ekleyin
-      set((state) => ({
-        lawyers: [...state.lawyers, response.data],
-      }));
-    } catch (error) {
-      console.error("Error adding lawyer:", error.message);
-    }
-  },
+addLawyer: async (lawyer) => {
+  try {
+    const response = await axios.post("http://localhost:5000/api/lawyers", {
+      firstName: lawyer.firstName,
+      lastName: lawyer.lastName,
+      nationalId: lawyer.nationalId,
+      username: lawyer.username,
+      password: lawyer.password,
+      mail: lawyer.mail,
+    });
+    set((state) => ({
+      lawyers: [...state.lawyers, response.data],
+    }));
+  } catch (error) {
+    console.error("Error adding lawyer:", error.message);
+  }
+},
+
+
   
   // Avukat silme fonksiyonu
   removeLawyer: async (nationalId) => {

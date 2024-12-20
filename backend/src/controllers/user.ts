@@ -2,17 +2,18 @@ import { Request, Response } from "express";
 import User from "../models/user";
 
 // Yeni kullanıcı oluştur
-export const createUser = async (req: Request, res: Response) => {
+export const createUser = async (req: Request, res: Response): Promise<void> => {
   try {
-    const user = new User(req.body);
-    const savedUser = await user.save();
-    res.status(201).json(savedUser);
-  } catch (err) {
-    res
-      .status(400)
-      .json({ error: err instanceof Error ? err.message : "Unknown error" });
+    const newUser = new User(req.body);
+    console.log("Yeni kullanıcı ekleniyor:", newUser); // Loglama
+    await newUser.save();
+    res.status(201).json({ message: "User created successfully", user: newUser });
+  } catch (error) {
+    console.error("Kullanıcı oluşturulurken hata:", error); // Loglama
+    res.status(500).json({ message: "An error occurred", error });
   }
 };
+
 
 // Tüm kullanıcıları listele
 export const getAllUsers = async (req: Request, res: Response) => {

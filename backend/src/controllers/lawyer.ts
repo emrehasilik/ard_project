@@ -30,6 +30,9 @@ export const addLawyer = async (
   try {
     const { firstName, lastName, nationalId, username, password, mail } = req.body;
 
+    // Giriş verilerini kontrol et
+    console.log("Gelen veriler:", req.body);
+
     const newLawyer = new User({
       firstName,
       lastName,
@@ -44,7 +47,7 @@ export const addLawyer = async (
     res.status(201).json(newLawyer);
   } catch (error) {
     const errMessage = error instanceof Error ? error.message : "Unknown error";
-    console.error("Error adding lawyer:", errMessage);
+    console.error("Avukat ekleme hatası:", errMessage);
     res.status(500).json({ message: "Failed to add lawyer", error: errMessage });
   }
 };
