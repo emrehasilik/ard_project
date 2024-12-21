@@ -1,30 +1,51 @@
-import jwt, { JwtPayload } from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
-import User from "../models/user";
+import jwt from "jsonwebtoken";
 
-// JwtPayload arayüzüne id ekliyoruz
-interface CustomJwtPayload extends JwtPayload {
-  id: string;
+// req.user tipini genişletiyoruz
+declare global {
+  namespace Express {
+    interface Request {
+      user?: { id: string; role: string[] };
+    }
+  }
 }
 
-export const authenticateUser = async (req: Request, res: Response, next: NextFunction) => {
-  const token = req.headers.authorization?.split(" ")[1];
+// JWT doğrulama middleware'i
+export const requireAuth = (req: Request, res: Response, next: NextFunction): void => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ message: "No token provided" });
+    return;
+  }
 
+  const token = authHeader.split(" ")[1];
   if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
+    res.status(401).json({ message: "Token format is invalid" });
+    return;
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || "") as CustomJwtPayload; // jwt key tanımladım env de
-    const user = await User.findById(decoded.id);
-
-    if (!user) {
-      return res.status(401).json({ error: "User not found" });
-    }
-
-    req.user = user;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || "default_secret") as { id: string; role: string[] };
+    req.user = decoded;
     next();
   } catch (err) {
-    res.status(401).json({ error: "Unauthorized" });
+    console.error("Token verification error:", err);
+    res.status(401).json({ message: "Invalid token" });
   }
+};
+
+export const isBar = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || !req.user.role.includes("Baro")) {
+    res.status(403).json({ message: "Access denied" });
+    return;
+  }
+  next();
+};
+
+export const isLawyer = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user || !req.user.role.includes("lawyer")) {
+    res.status(403).json({ message: "Access denied" });
+    return;
+  }
+  next();
 };

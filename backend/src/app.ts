@@ -10,6 +10,7 @@ import caseRoutes from "./routers/case";
 import violationRoutes from "./routers/violation";
 import uploadDocsRouter from "./routers/uploadDocsRouter";
 import lawyerRoutes from "./routers/lawyer";
+import authRoutes from "./routers/auth";
 
 dotenv.config();
 
