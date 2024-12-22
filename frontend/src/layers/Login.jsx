@@ -18,29 +18,38 @@ const Login = () => {
     e.preventDefault();
     setError("");
     setSuccessMessage("");
-    try {
-      const response = await axios.post("http://localhost:5000/auth/login", formData);
-      const token = response.data.token;
+  try {
+  const response = await axios.post("http://localhost:5000/auth/login", {
+    username: formData.username,
+    password: formData.password,
+  });
 
-      // Token'ı localStorage'a kaydet
-      localStorage.setItem("token", token);
+  if (response.status === 200 && response.data.token) {
+    const token = response.data.token;
+    localStorage.setItem("token", token);
 
-      // Token'dan kullanıcı rolünü çözümle
-      const decodedToken = JSON.parse(atob(token.split(".")[1])); 
-      const userRole = decodedToken.role[0]; // İlk rolü al
-
-      // Kullanıcı rolüne göre yönlendirme veya mesaj
-      if (userRole === "Baro") {
-        navigate("/basvurular");
-      } else if (userRole === "lawyer") {
-        // Avukat rolü için henüz sayfa yok, sadece mesaj göster
-        setSuccessMessage("Avukat girişi başarılı!");
-      } else {
-        setError("Geçersiz kullanıcı rolü!");
-      }
-    } catch (error) {
-      setError("Geçersiz kullanıcı adı veya şifre!");
+    // Kullanıcı rolüne göre yönlendirme
+    const decodedToken = JSON.parse(atob(token.split(".")[1]));
+    const userRole = decodedToken.role[0];
+    console.log(userRole);
+    if (userRole === "Baro") {
+      navigate("/basvurular");
+    } else if (userRole === "lawyer") {
+      navigate("/avukataccess");
+    } else {
+      setError("Geçersiz kullanıcı rolü!");
     }
+  } else {
+    setError("Beklenmeyen bir hata oluştu.");
+  }
+} catch (err) {
+  if (err.response && err.response.status === 401) {
+    setError("Geçersiz kullanıcı adı veya şifre!");
+  } else {
+    setError("Sunucuya bağlanırken bir hata oluştu!");
+  }
+}
+
   };
 
   return (

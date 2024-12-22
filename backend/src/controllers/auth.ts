@@ -24,6 +24,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
       process.env.JWT_SECRET || "default_secret",
       { expiresIn: "1h" }
     );
+    
 
     res.json({ token });
   } catch (error) {

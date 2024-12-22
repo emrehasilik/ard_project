@@ -5,6 +5,7 @@ const ProtectedRoute = ({ children }) => {
   const token = localStorage.getItem("token"); // Kullanıcı token'ı kontrol et
 
   if (!token) {
+    console.log("Token yok");
     return <Navigate to="/" />; // Token yoksa login sayfasına yönlendir
   }
 

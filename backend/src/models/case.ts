@@ -4,7 +4,7 @@ export interface ICase extends Document {
   applicationId: string; // Başvurunun ID'si
   parties: {
     name: string; // Taraf Adı Soyadı
-    lawyer: mongoose.Types.ObjectId; // Avukat (users şemasına referans)
+    lawyer: string; // Avukat (users şemasına referans)
   };
   caseNumber: string; // Dava No
   subject: string; // Dava Konusu

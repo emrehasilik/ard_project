@@ -3,8 +3,9 @@ import { Routes, Route } from "react-router-dom";
 import Application from "./layers/Application";
 import Lawyer from "./layers/Lawyer";
 import Case from "./layers/Case";
-import Login from "./layers/Login"; 
-import ProtectedRoute from "./components/ProtectedRoute "; 
+import Login from "./layers/Login";
+import LawyerAccess from "./layers/lawyerAccess"; // Yeni bileşeni import ediyoruz
+import ProtectedRoute from "./components/ProtectedRoute ";
 
 const App = () => {
   return (
@@ -16,7 +17,7 @@ const App = () => {
       <Route
         path="/basvurular"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="Baro">
             <Application />
           </ProtectedRoute>
         }
@@ -24,7 +25,7 @@ const App = () => {
       <Route
         path="/avukatlar"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="Baro">
             <Lawyer />
           </ProtectedRoute>
         }
@@ -32,13 +33,21 @@ const App = () => {
       <Route
         path="/davalar"
         element={
-          <ProtectedRoute>
+          <ProtectedRoute requiredRole="lawyer">
             <Case />
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/avukataccess"
+        element={
+       
+            <LawyerAccess />
+    
+        }
+      />
     </Routes>
   );
-};  
+};
 
 export default App;

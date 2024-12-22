@@ -36,7 +36,7 @@ const userApiPath = process.env.USER_API || "/api/users";
 const applicationApiPath = process.env.APPLICATION_API || "/api/applications";
 const uploadFolderApiPath = process.env.S3RoutesAPI || "/api/s3";
 const violationApiPath = process.env.VIOLATION_API || "/api/violations";
-const casesApiPath = process.env.CASE_API || "/api/cases";
+const casesApiPath = "/api/cases";
 const docsApiPath = process.env.DOCS_API || "/api/docs";
 const lawyerApiPath = "/api/lawyers";
 

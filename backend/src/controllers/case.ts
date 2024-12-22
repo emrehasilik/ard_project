@@ -4,8 +4,24 @@ import Case from "../models/case";
 // Yeni Dava Oluştur
 export const createCase = async (req: Request, res: Response): Promise<void> => {
   try {
-    const caseData = req.body;
-    const newCase = new Case(caseData);
+    const { applicationId, parties, caseNumber, subject, court, indictment, files } = req.body;
+
+    console.log("parties:", parties);
+
+    const newCase = new Case({
+      applicationId,
+      parties: {
+        name: parties.name,
+        lawyer: parties.lawyer, // Avukatın ObjectId'si
+      },
+      caseNumber,
+      subject,
+      court,
+      indictment,
+      files,
+      status: "ongoing",
+    });
+
     const savedCase = await newCase.save();
     res.status(201).json(savedCase);
   } catch (err) {
@@ -14,6 +30,7 @@ export const createCase = async (req: Request, res: Response): Promise<void> => 
     });
   }
 };
+
 
 // Tüm Davaları Listele (Baro için)
 export const getAllCases = async (req: Request, res: Response): Promise<void> => {
@@ -27,22 +44,38 @@ export const getAllCases = async (req: Request, res: Response): Promise<void> =>
   }
 };
 
-// Avukata atanan davaları listele
 export const getAssignedCases = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.user) {
       res.status(401).json({ message: "Unauthorized" });
       return;
     }
-    const lawyerId = req.user.id;
-    const assignedCases = await Case.find({ "parties.lawyer": lawyerId }).populate("parties.lawyer");
+
+    const lawyerId = req.user.id; // JWT'den gelen avukat ID'si
+    console.log("Avukat ID:", lawyerId);
+    // Avukata atanan davaları sorgula
+    const assignedCases = await Case.find({
+      "parties.lawyer": lawyerId, // Avukatın ID'sine göre sorgula
+      
+    }).populate("parties.lawyer", "firstName lastName email"); // Avukat bilgilerini ilişkilendir
+
+    console.log("Atanan dava sayısı:", assignedCases);
+
+    if (assignedCases.length === 0) {
+      res.status(404).json({ message: "Henüz size atanan bir dava bulunmamaktadır." });
+      return;
+    }
+
     res.status(200).json(assignedCases);
   } catch (err) {
+    console.error("Hata:", err);
     res.status(500).json({
       error: err instanceof Error ? err.message : "An unknown error occurred.",
     });
   }
 };
+
+
 
 // Belirli Bir Davayı ID'ye Göre Getir
 export const getCaseById = async (req: Request, res: Response): Promise<void> => {

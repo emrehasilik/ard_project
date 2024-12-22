@@ -7,7 +7,7 @@ import {
   closeCase,
   getAssignedCases,
 } from "../controllers/case";
-import { requireAuth, isBar, isLawyer } from "../middlewares/auth";
+import { requireAuth, isBar, isLawyer, isLawyerAndOwnsCase } from "../middlewares/auth";
 
 const router = Router();
 
@@ -20,12 +20,11 @@ router.get("/assigned", requireAuth, isLawyer, getAssignedCases);
 // Herhangi bir authenticated kullanıcı dava oluşturabilsin derseniz (genelde baro yapar)
 router.post("/", requireAuth, isBar, createCase);
 
-// Dava detayları (Baro görebilir. Avukat da sadece kendine atanmış bir dava ise görebilsin? 
-// Bunun için ekstra kontrol gerekecek. Şimdilik sadece Baro'ya açık:
-router.get("/:id", requireAuth, isBar, getCaseById);
+// Dava detayları (Baro görebilir. Avukat da sadece kendine atanmış bir dava ise görebilsin)
+router.get("/:id", requireAuth, isLawyerAndOwnsCase, getCaseById);
 
-// Davayı güncelle (Baro)
-router.put("/:id", requireAuth, isBar, updateCase);
+// Davayı güncelle (Avukat sadece kendi davasını güncelleyebilir)
+router.put("/:id", requireAuth, isLawyerAndOwnsCase, updateCase);
 
 // Davayı kapat (Baro)
 router.delete("/:id", requireAuth, isBar, closeCase);
