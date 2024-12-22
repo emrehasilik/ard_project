@@ -1,8 +1,7 @@
 import axios from "axios";
 import { create } from "zustand";
 
-// Backend base URL'sini tanımla
-const BASE_URL = "http://localhost:5000/api/applications";
+
 
 const useApplicationStore = create((set, get) => ({
   applications: [],
@@ -10,7 +9,7 @@ const useApplicationStore = create((set, get) => ({
   // Başvuruları sunucudan çekme fonksiyonu
   fetchApplications: async () => {
     try {
-      const response = await axios.get(BASE_URL);
+      const response = await axios.get("/api/applications");
 
       // Gelen veriyi frontend için formatla
       const formattedData = response.data.map((app) => ({
@@ -38,7 +37,7 @@ const useApplicationStore = create((set, get) => ({
   // Yeni başvuru ekleme fonksiyonu
   addApplication: async (application) => {
     try {
-      const response = await axios.post(BASE_URL, application);
+      const response = await axios.post("/api/applications", application);
 
       const newApplication = {
         tcKimlikNo: response.data.nationalId || "",
@@ -67,7 +66,7 @@ const useApplicationStore = create((set, get) => ({
   // Başvuru silme fonksiyonu
   removeApplication: async (applicationId) => {
     try {
-      await axios.delete(`${BASE_URL}/${applicationId}`);
+      await axios.delete(`/api/applications/${applicationId}`);
       set((state) => ({
         applications: state.applications.filter((app) => app._id !== applicationId),
       }));
@@ -79,7 +78,7 @@ const useApplicationStore = create((set, get) => ({
   // Başvuru güncelleme fonksiyonu
   updateApplication: async (applicationId, updatedApplication) => {
     try {
-      const response = await axios.put(`${BASE_URL}/${applicationId}`, updatedApplication);
+      const response = await axios.put(`/api/applications/${applicationId}`, updatedApplication);
 
       const updatedApp = {
         tcKimlikNo: response.data.nationalId || "", // T.C. Kimlik No

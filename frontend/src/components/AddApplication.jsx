@@ -137,7 +137,7 @@ const AddApplication = ({ onClose, onSave }) => {
     formData.append("file", file);
 
     try {
-      const response = await axios.post("http://localhost:5000/api/s3/upload", formData, {
+      const response = await axios.post("/api/s3/upload", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -173,7 +173,7 @@ const AddApplication = ({ onClose, onSave }) => {
         fileData.append("file", files[0]);
 
         const response = await axios.post(
-          "http://localhost:5000/api/s3/upload",
+          "/api/s3/upload",
           fileData,
           {
             headers: {

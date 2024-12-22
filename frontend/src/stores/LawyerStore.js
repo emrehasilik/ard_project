@@ -7,7 +7,7 @@ const useLawyerStore = create((set, get) => ({
   // Avukatları sunucudan çekme fonksiyonu
   fetchLawyers: async () => {
     try {
-      const response = await axios.get("http://localhost:5000/api/lawyers");
+      const response = await axios.get("/api/lawyers");
       console.log("Fetched lawyers:", response.data); // Gelen veriyi kontrol et
       set({ lawyers: Array.isArray(response.data) ? response.data : [] });
     } catch (error) {
@@ -18,7 +18,7 @@ const useLawyerStore = create((set, get) => ({
 // avukat ekleme
 addLawyer: async (lawyer) => {
   try {
-    const response = await axios.post("http://localhost:5000/api/lawyers", {
+    const response = await axios.post("/api/lawyers", {
       firstName: lawyer.firstName,
       lastName: lawyer.lastName,
       nationalId: lawyer.nationalId,
@@ -39,7 +39,7 @@ addLawyer: async (lawyer) => {
   // Avukat silme fonksiyonu
   removeLawyer: async (nationalId) => {
     try {
-      await axios.delete(`http://localhost:5000/api/lawyers/${nationalId}`);
+      await axios.delete(`/api/lawyers/${nationalId}`);
       set((state) => ({
         lawyers: state.lawyers.filter(
           (lawyer) => lawyer.nationalId !== nationalId

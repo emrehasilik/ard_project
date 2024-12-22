@@ -14,7 +14,7 @@ const LawyerAccess = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/cases/assigned", {
+        const response = await axios.get("/api/cases/assigned", {
           headers: {
             Authorization: `Bearer ${token}`,
           },

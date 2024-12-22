@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import App from './App';
 import Login from './layers/Login';
 import './index.css';  // Tailwind CSS'i dahil ettiğimiz kısım
+import './stores/axios'
 
 createRoot(document.getElementById('root')).render(
   <React.StrictMode>

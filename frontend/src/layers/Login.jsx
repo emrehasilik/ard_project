@@ -19,7 +19,7 @@ const Login = () => {
     setError("");
     setSuccessMessage("");
   try {
-  const response = await axios.post("http://localhost:5000/auth/login", {
+  const response = await axios.post("/auth/login", {
     username: formData.username,
     password: formData.password,
   });
