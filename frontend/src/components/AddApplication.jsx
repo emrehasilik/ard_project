@@ -4,6 +4,7 @@ import DetailsForm from "./ApplicationDetailsForm";
 import FormField from "./ApplicationFormField";
 import { validateForm } from "../utils/validation";
 import ViolationForm from "./ViolationForm";
+import axios from "axios";
 
 const AddApplication = ({ onClose, onSave }) => {
   const [formData, setFormData] = useState({
@@ -45,6 +46,7 @@ const AddApplication = ({ onClose, onSave }) => {
   const [isSelfApplicant, setIsSelfApplicant] = useState(false);
   const [isCustomReason, setIsCustomReason] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
@@ -74,15 +76,13 @@ const AddApplication = ({ onClose, onSave }) => {
     "detaylar.dosyaAciklama": "Dosya Açıklaması",
   };
 
-  // Dosya açıklamasını zorunlu kılmayın, sadece diğer alanları zorunlu yapın
   const requiredFields = [
     "tcKimlikNo",
     "adi",
     "soyadi",
     "ihlalNedeni",
     "detaylar.basvuranTuru",
-    "detaylar.takipAvukat"
-    // "detaylar.dosyaAciklama" alanını buradan kaldırdık
+    "detaylar.takipAvukat",
   ];
 
   const handleInputChange = (e) => {
@@ -103,6 +103,15 @@ const AddApplication = ({ onClose, onSave }) => {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      alert("Dosya seçilmedi");
+      return;
+    }
+    setFiles([file]); // Seçilen dosyayı state'e ekle
+  };
+
   const handleCourtInfoChange = (e) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({
@@ -117,59 +126,101 @@ const AddApplication = ({ onClose, onSave }) => {
     }));
   };
 
-  const handleFileChange = (e) => {
-    const selectedFiles = Array.from(e.target.files);
-    setFiles(selectedFiles);
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      alert("Dosya seçilmedi");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const response = await axios.post("http://localhost:5000/api/s3/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
+      alert("Dosya başarıyla yüklendi: " + response.data.url);
+    } catch (error) {
+      console.error("Dosya yükleme hatası:", error);
+      alert("Dosya yükleme başarısız oldu");
+    }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-  
-    // Form doğrulaması
-    const error = validateForm(formData, fieldNames, requiredFields);
-    if (error) {
-      setErrorMessage(error);
-      return;
-    }
-  
-    // Eğer dosya varsa ve dosya açıklaması girilmemişse uyarı ver
-    if (files.length > 0 && !formData.detaylar.dosyaAciklama.trim()) {
-      setErrorMessage("Dosya eklediğinizde dosya açıklaması girmek zorundasınız.");
-      return;
-    }
-  
-    const fileLinks = files.map((file) => file.name);
-  
-    // Dosya açıklaması sadece dosya yüklendiyse eklenir
-    const description = files.length > 0 ? formData.detaylar.dosyaAciklama : "";
-  
-    const formattedData = {
-      applicationData: {
-        nationalId: formData.tcKimlikNo, // nationalId backend'e gönderiliyor
-        firstName: formData.adi,
-        lastName: formData.soyadi,
-        applicationType: formData.detaylar.basvuranTuru,
-        applicationDate: formData.detaylar.basvuruTarihi,
-        lawyer: formData.detaylar.takipAvukat,
-        violationReason: formData.ihlalNedeni,
-        submissionType: "Online",
-        description,
-        courtInfo: {
-          caseNumber: formData.detaylar.davaBilgileri.dosyaNumarasi || "",
-          courtName: formData.detaylar.davaBilgileri.mahkeme || "",
-          courtFileNumber: formData.detaylar.davaBilgileri.mahkemeDosyaNo || "",
-          resultDescription: formData.detaylar.davaBilgileri.sonucuAciklama || "",
-          resultStatus: formData.detaylar.davaBilgileri.sonucuAsama || "",
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Sayfanın yenilenmesini engelle
+    setIsSubmitting(true);
+
+    try {
+      const error = validateForm(formData, fieldNames, requiredFields);
+      if (error) {
+        setErrorMessage(error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      if (files.length > 0 && !formData.detaylar.dosyaAciklama.trim()) {
+        setErrorMessage("Dosya eklediğinizde dosya açıklaması girmek zorundasınız.");
+        return;
+      }
+
+      let fileLinks = [];
+      if (files.length > 0) {
+        const fileData = new FormData();
+        fileData.append("file", files[0]);
+
+        const response = await axios.post(
+          "http://localhost:5000/api/s3/upload",
+          fileData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
+
+        fileLinks = [response.data.url];
+      }
+
+      const description = files.length > 0 ? formData.detaylar.dosyaAciklama : "";
+
+      const formattedData = {
+        applicationData: {
+          nationalId: formData.tcKimlikNo,
+          firstName: formData.adi,
+          lastName: formData.soyadi,
+          applicationType: formData.detaylar.basvuranTuru,
+          applicationDate: formData.detaylar.basvuruTarihi,
+          lawyer: formData.detaylar.takipAvukat,
+          violationReason: formData.ihlalNedeni,
+          submissionType: "Online",
+          description,
+          courtInfo: {
+            caseNumber: formData.detaylar.davaBilgileri.dosyaNumarasi || "",
+            courtName: formData.detaylar.davaBilgileri.mahkeme || "",
+            courtFileNumber: formData.detaylar.davaBilgileri.mahkemeDosyaNo || "",
+            resultDescription: formData.detaylar.davaBilgileri.sonucuAciklama || "",
+            resultStatus: formData.detaylar.davaBilgileri.sonucuAsama || "",
+          },
+          fileLinks: fileLinks,
         },
-        fileLinks: fileLinks,
-      },
-      violationData: isViolationInfoAvailable ? violationData : null,
-    };
-  
-    onSave(formattedData);
-    setErrorMessage("");
+        violationData: isViolationInfoAvailable ? violationData : null,
+      };
+
+      onSave(formattedData); // Form verilerini üst bileşene gönder
+      setErrorMessage(""); // Hata mesajını temizle
+    } catch (error) {
+      console.error("Dosya yükleme hatası:", error);
+      alert("Dosya yükleme başarısız oldu");
+    } finally {
+      setIsSubmitting(false);
+    }
+
   };
-  
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center overflow-auto">
@@ -247,20 +298,19 @@ const AddApplication = ({ onClose, onSave }) => {
                 placeholder="Dosya açıklamasını girin"
                 value={formData.detaylar.dosyaAciklama}
                 onChange={handleInputChange}
-                disabled={files.length === 0} // Dosya eklenmediyse açıklama yapılamaz
+                disabled={files.length === 0}
               />
               <div className="mt-2 flex justify-start space-x-4">
                 <label className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 cursor-pointer">
                   Dosya Ekle
                   <input
                     type="file"
-                    multiple
                     className="hidden"
-                    onChange={handleFileChange}
+                    onChange={handleFileSelect}
                   />
                 </label>
                 {files.length > 0 && (
-                  <div className="text-sm text-gray-700">{files.length} dosya seçildi.</div>
+                  <div className="text-sm text-gray-700">{files[0].name} dosyası seçildi.</div>
                 )}
               </div>
             </div>
@@ -273,7 +323,7 @@ const AddApplication = ({ onClose, onSave }) => {
             isCourtInfoAvailable={isCourtInfoAvailable}
             setIsCourtInfoAvailable={setIsCourtInfoAvailable}
           />
-          
+
           <ViolationForm
             violationData={violationData}
             setViolationData={setViolationData}
@@ -282,18 +332,21 @@ const AddApplication = ({ onClose, onSave }) => {
           />
 
           {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
+          {isSubmitting && <div className="text-blue-500 mb-4">Başvuru gönderiliyor...</div>}
 
           <div className="flex justify-end">
             <button
               type="button"
               className="mr-4 bg-gray-300 text-gray-700 px-4 py-2 rounded"
               onClick={onClose}
+              disabled={isSubmitting}
             >
               İptal
             </button>
             <button
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              disabled={isSubmitting}
             >
               Kaydet
             </button>
