@@ -16,15 +16,11 @@ dotenv.config();
 
 const app = express();
 
-// **CORS'u aktif et**
-const allowedOrigins = ["http://localhost:5173"]; // Gerekirse üretim ortamı adresinizi ekleyin
-app.use(
-  cors({
-    origin: allowedOrigins,
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true,
-  })
-);
+app.use(cors({
+  origin: "http://localhost:5173",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true,
+}));
 
 // **JSON Parsingi**
 app.use(express.json());
