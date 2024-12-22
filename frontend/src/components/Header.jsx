@@ -1,4 +1,3 @@
-// src/components/Header.jsx
 import React from "react";
 import { useLocation } from "react-router-dom";
 
@@ -16,7 +15,7 @@ const Header = () => {
   const title = pageTitles[location.pathname] || "Sayfa";
 
   return (
-    <div className="bg-[#002855] p-4 shadow-md flex justify-between items-center border-b-4 border-[#D4AF37]">
+    <div className="bg-gradient-to-r from-[#0A2637] to-[#144272] p-4 shadow-xl flex justify-between items-center border-b-4 border-[#C9A23E]">
       <h1 className="text-2xl font-bold text-white">{title}</h1>
     </div>
   );
