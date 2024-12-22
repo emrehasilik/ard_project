@@ -46,6 +46,7 @@ const AddApplication = ({ onClose, onSave }) => {
   const [isSelfApplicant, setIsSelfApplicant] = useState(false);
   const [isCustomReason, setIsCustomReason] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState([]);
 
   useEffect(() => {
@@ -102,6 +103,15 @@ const AddApplication = ({ onClose, onSave }) => {
     }
   };
 
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) {
+      alert("Dosya seçilmedi");
+      return;
+    }
+    setFiles([file]); // Seçilen dosyayı state'e ekle
+  };
+
   const handleCourtInfoChange = (e) => {
     const { id, value } = e.target;
     setFormData((prevData) => ({
@@ -140,50 +150,77 @@ const AddApplication = ({ onClose, onSave }) => {
     }
   };
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault(); // Sayfanın yenilenmesini engelle
+    setIsSubmitting(true);
 
-    const error = validateForm(formData, fieldNames, requiredFields);
-    if (error) {
-      setErrorMessage(error);
-      return;
-    }
+    try {
+      const error = validateForm(formData, fieldNames, requiredFields);
+      if (error) {
+        setErrorMessage(error);
+        setIsSubmitting(false);
+        return;
+      }
 
-    if (files.length > 0 && !formData.detaylar.dosyaAciklama.trim()) {
-      setErrorMessage("Dosya eklediğinizde dosya açıklaması girmek zorundasınız.");
-      return;
-    }
+      if (files.length > 0 && !formData.detaylar.dosyaAciklama.trim()) {
+        setErrorMessage("Dosya eklediğinizde dosya açıklaması girmek zorundasınız.");
+        return;
+      }
 
-    const fileLinks = files.map((file) => file.name);
+      let fileLinks = [];
+      if (files.length > 0) {
+        const fileData = new FormData();
+        fileData.append("file", files[0]);
 
-    const description = files.length > 0 ? formData.detaylar.dosyaAciklama : "";
+        const response = await axios.post(
+          "http://localhost:5000/api/s3/upload",
+          fileData,
+          {
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
-    const formattedData = {
-      applicationData: {
-        nationalId: formData.tcKimlikNo,
-        firstName: formData.adi,
-        lastName: formData.soyadi,
-        applicationType: formData.detaylar.basvuranTuru,
-        applicationDate: formData.detaylar.basvuruTarihi,
-        lawyer: formData.detaylar.takipAvukat,
-        violationReason: formData.ihlalNedeni,
-        submissionType: "Online",
-        description,
-        courtInfo: {
-          caseNumber: formData.detaylar.davaBilgileri.dosyaNumarasi || "",
-          courtName: formData.detaylar.davaBilgileri.mahkeme || "",
-          courtFileNumber: formData.detaylar.davaBilgileri.mahkemeDosyaNo || "",
-          resultDescription: formData.detaylar.davaBilgileri.sonucuAciklama || "",
-          resultStatus: formData.detaylar.davaBilgileri.sonucuAsama || "",
+        fileLinks = [response.data.url];
+      }
+
+      const description = files.length > 0 ? formData.detaylar.dosyaAciklama : "";
+
+      const formattedData = {
+        applicationData: {
+          nationalId: formData.tcKimlikNo,
+          firstName: formData.adi,
+          lastName: formData.soyadi,
+          applicationType: formData.detaylar.basvuranTuru,
+          applicationDate: formData.detaylar.basvuruTarihi,
+          lawyer: formData.detaylar.takipAvukat,
+          violationReason: formData.ihlalNedeni,
+          submissionType: "Online",
+          description,
+          courtInfo: {
+            caseNumber: formData.detaylar.davaBilgileri.dosyaNumarasi || "",
+            courtName: formData.detaylar.davaBilgileri.mahkeme || "",
+            courtFileNumber: formData.detaylar.davaBilgileri.mahkemeDosyaNo || "",
+            resultDescription: formData.detaylar.davaBilgileri.sonucuAciklama || "",
+            resultStatus: formData.detaylar.davaBilgileri.sonucuAsama || "",
+          },
+          fileLinks: fileLinks,
         },
-        fileLinks: fileLinks,
-      },
-      violationData: isViolationInfoAvailable ? violationData : null,
-    };
+        violationData: isViolationInfoAvailable ? violationData : null,
+      };
 
-    onSave(formattedData);
-    setErrorMessage("");
+      onSave(formattedData); // Form verilerini üst bileşene gönder
+      setErrorMessage(""); // Hata mesajını temizle
+    } catch (error) {
+      console.error("Dosya yükleme hatası:", error);
+      alert("Dosya yükleme başarısız oldu");
+    } finally {
+      setIsSubmitting(false);
+    }
+
   };
+
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center overflow-auto">
@@ -269,11 +306,11 @@ const AddApplication = ({ onClose, onSave }) => {
                   <input
                     type="file"
                     className="hidden"
-                    onChange={handleFileUpload}
+                    onChange={handleFileSelect}
                   />
                 </label>
                 {files.length > 0 && (
-                  <div className="text-sm text-gray-700">{files.length} dosya seçildi.</div>
+                  <div className="text-sm text-gray-700">{files[0].name} dosyası seçildi.</div>
                 )}
               </div>
             </div>
@@ -295,18 +332,21 @@ const AddApplication = ({ onClose, onSave }) => {
           />
 
           {errorMessage && <div className="text-red-500 mb-4">{errorMessage}</div>}
+          {isSubmitting && <div className="text-blue-500 mb-4">Başvuru gönderiliyor...</div>}
 
           <div className="flex justify-end">
             <button
               type="button"
               className="mr-4 bg-gray-300 text-gray-700 px-4 py-2 rounded"
               onClick={onClose}
+              disabled={isSubmitting}
             >
               İptal
             </button>
             <button
               type="submit"
               className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+              disabled={isSubmitting}
             >
               Kaydet
             </button>
